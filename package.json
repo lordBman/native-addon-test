@@ -1,0 +1,31 @@
+{
+  "name": "native-addon-test",
+  "module": "index.ts",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "build": "npm run build:cpp && npm run build:ts",
+    "build:cpp": "node-gyp rebuild",
+    "build:ts": "tsc",
+    "clean": "node-gyp clean",
+    "test": "npm run build && mocha",
+    "install": "node-gyp rebuild",
+    "prebuild": "npm run clean"
+  },
+  "gypfile": true,
+  "devDependencies": {
+    "@types/bun": "latest",
+    "@types/mocha": "^10.0.10",
+    "@types/node": "^25.0.2",
+    "mocha": "^11.7.5",
+    "node-gyp": "^12.1.0",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.3"
+  },
+  "peerDependencies": {
+    "typescript": "^5"
+  },
+  "dependencies": {
+    "node-addon-api": "^8.5.0"
+  }
+}
