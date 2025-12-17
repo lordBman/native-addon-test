@@ -16,7 +16,7 @@ namespace calculator {
     
     // Async work class
     class HeavyCalculator {
-    public:
-        static double compute(int iterations);
+        public:
+            static double compute(int iterations);
     };
 }

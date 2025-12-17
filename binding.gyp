@@ -3,6 +3,7 @@
     {
       "target_name": "mynative",
       "sources": [
+        "src/cpp/calculator.cc",
         "src/cpp/addon.cc"
       ],
       "include_dirs": [
