@@ -1,9 +1,8 @@
-#include <napi.h>
+#include<napi.h>
 #include "calculator.h"
 
 // Helper function to convert Napi::Value to calculator::ComplexNumber
 calculator::ComplexNumber ExtractComplexNumber(const Napi::CallbackInfo& info, int index) {
-    Napi::Env env = info.Env();
     Napi::Object obj = info[index].As<Napi::Object>();
     return {
         obj.Get("real").As<Napi::Number>().DoubleValue(),
@@ -51,47 +50,47 @@ Napi::Object AddComplex(const Napi::CallbackInfo& info) {
 
 // Async Worker class
 class ComputeAsyncWorker : public Napi::AsyncWorker {
-public:
-    ComputeAsyncWorker(Napi::Function& callback, int iterations)
-        : Napi::AsyncWorker(callback), iterations_(iterations), result_(0.0) {}
-    
-    void Execute() override {
-        // This runs in a separate thread
-        result_ = calculator::HeavyCalculator::compute(iterations_);
-    }
-    
-    void OnOK() override {
-        Napi::HandleScope scope(Env());
-        Callback().Call({Env().Null(), Napi::Number::New(Env(), result_)});
-    }
-    
-    void OnError(const Napi::Error& e) override {
-        Napi::HandleScope scope(Env());
-        Callback().Call({e.Value(), Env().Undefined()});
-    }
-    
-private:
-    int iterations_;
-    double result_;
-};
+    public:
+        ComputeAsyncWorker(Napi::Function& callback, int iterations)
+            : Napi::AsyncWorker(callback), iterations_(iterations), result_(0.0) {}
 
-// Async function
-Napi::Value ComputeAsync(const Napi::CallbackInfo& info) {
-    Napi::Env env = info.Env();
+        void Execute() override {
+            // This runs in a separate thread
+            result_ = calculator::HeavyCalculator::compute(iterations_);
+        }
+
+        void OnOK() override {
+            Napi::HandleScope scope(Env());
+            Callback().Call({Env().Null(), Napi::Number::New(Env(), result_)});
+        }
+
+        void OnError(const Napi::Error& e) override {
+            Napi::HandleScope scope(Env());
+            Callback().Call({e.Value(), Env().Undefined()});
+        }
     
-    if (info.Length() < 2) {
-        Napi::TypeError::New(env, "Expected 2 arguments").ThrowAsJavaScriptException();
-        return env.Null();
+    private:
+        int iterations_;
+        double result_;
+    };
+
+    // Async function
+    Napi::Value ComputeAsync(const Napi::CallbackInfo& info) {
+        Napi::Env env = info.Env();
+
+        if (info.Length() < 2) {
+            Napi::TypeError::New(env, "Expected 2 arguments").ThrowAsJavaScriptException();
+            return env.Null();
+        }
+
+        int iterations = info[0].As<Napi::Number>().Int32Value();
+        Napi::Function callback = info[1].As<Napi::Function>();
+
+        ComputeAsyncWorker* worker = new ComputeAsyncWorker(callback, iterations);
+        worker->Queue();
+
+        return env.Undefined();
     }
-    
-    int iterations = info[0].As<Napi::Number>().Int32Value();
-    Napi::Function callback = info[1].As<Napi::Function>();
-    
-    ComputeAsyncWorker* worker = new ComputeAsyncWorker(callback, iterations);
-    worker->Queue();
-    
-    return env.Undefined();
-}
 
 // Object-oriented approach
 class CalculatorWrapper : public Napi::ObjectWrap<CalculatorWrapper> {
